@@ -17,7 +17,7 @@ A Terraform module to create s3 bucket for remote state.
 | remote_state_bucket | Created bucket name |
 
 ## Example
-Setup and create resources
+#### Setup and create resources
 
 main.tf
 ```hcl
@@ -47,7 +47,7 @@ tags = {
 }
 ```
 
-Using the s3 bucket created
+#### Using the s3 bucket created
 ```hcl
 terraform {
 	backend "s3" {
