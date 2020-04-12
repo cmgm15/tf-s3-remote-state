@@ -54,7 +54,7 @@ resource "aws_s3_bucket" "state" {
 }
 
 data "aws_iam_user" "owner" {
-  name = var.owner
+  user_name = var.owner
 }
 
 resource "aws_s3_bucket_policy" "bucket_policy" {
