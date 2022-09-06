@@ -1,3 +1,10 @@
+/**
+  * # README.md
+  * 
+  * A Terraform module to create s3 bucket for remote state.
+
+*/
+
 variable "owner" {
   type        = string
   description = "The owner username of the remote state bucket"
@@ -13,8 +20,8 @@ variable "tags" {
 }
 
 variable "multipart_delete" {
-  type    = bool
-  default = true
+  type    = string
+  default = "Enabled"
 }
 
 variable "multipart_days" {
@@ -31,26 +38,36 @@ resource "aws_s3_bucket" "state" {
   bucket        = "${var.application}-tf-state"
   force_destroy = var.force_destroy
 
-  versioning {
-    enabled = true
-  }
+  tags = var.tags
+}
 
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
+resource "aws_s3_bucket_lifecycle_configuration" "state" {
+  bucket = aws_s3_bucket.state.id
+  
+  rule {
+    id                                     = "auto-delete-incomplete-after-x-days"
+    status                                 = var.multipart_delete
+    abort_incomplete_multipart_upload {
+      days_after_initiation = var.multipart_days
+    } 
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "state" {
+  bucket = aws_s3_bucket.state.bucket
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
     }
   }
+}
 
-  lifecycle_rule {
-    id                                     = "auto-delete-incomplete-after-x-days"
-    prefix                                 = ""
-    enabled                                = var.multipart_delete
-    abort_incomplete_multipart_upload_days = var.multipart_days
+resource "aws_s3_bucket_versioning" "state" {
+  bucket = aws_s3_bucket.state.id
+  versioning_configuration {
+    status = "Enabled"
   }
-
-  tags = var.tags
 }
 
 data "aws_iam_user" "owner" {
